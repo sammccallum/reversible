@@ -6,8 +6,8 @@ import jax.numpy as jnp
 from jax.lax import fori_loop
 from jaxtyping import Array, Float
 
-from reversible_solvers.solver_step import AbstractSolverStep
-from reversible_solvers.vector_field import AbstractVectorField
+from reversible.solver_step import AbstractSolverStep
+from reversible.vector_field import AbstractVectorField
 
 State = Float[Array, " d"]
 ReversibleState = Tuple[State, State]

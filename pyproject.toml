@@ -1,5 +1,5 @@
 [project]
-name = "reversible_solvers"
+name = "reversible"
 version = "0.0.1"
 
 [build-system]

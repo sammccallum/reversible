@@ -4,7 +4,7 @@ import equinox as eqx
 import jax
 from jaxtyping import Array, Float
 
-from reversible_solvers.vector_field import AbstractVectorField
+from reversible.vector_field import AbstractVectorField
 
 State = Float[Array, " d"]
 

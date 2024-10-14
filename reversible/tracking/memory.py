@@ -1,13 +1,13 @@
+import os
 import signal
 import subprocess
 
 
 class MemoryTracker:
     def start(self):
+        cwd = os.path.dirname(os.path.abspath(__file__))
         self.process = subprocess.Popen(
-            [
-                "/home/sm2942/reversible_solvers/reversible_solvers/tracking/track_gpu_memory.sh",
-            ],
+            [os.path.join(cwd, "track_gpu_memory.sh")],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )

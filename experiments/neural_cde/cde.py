@@ -11,11 +11,11 @@ import jax.random as jr
 import numpy as np
 import optax
 
-from reversible_solvers.reversible import Reversible
-from reversible_solvers.solver import Solver
-from reversible_solvers.solver_step import RK4, Dopri5, Midpoint
-from reversible_solvers.tracking.memory import MemoryTracker
-from reversible_solvers.vector_field import AbstractVectorField
+from reversible.reversible_solver import Reversible
+from reversible.solver_step import RK4, Dopri5, Midpoint
+from reversible.standard_solver import Solver
+from reversible.tracking.memory import MemoryTracker
+from reversible.vector_field import AbstractVectorField
 
 
 def load_data(permutation_key, split):

@@ -11,11 +11,11 @@ import jax.random as jr
 import optax
 from sklearn.datasets import make_circles, make_moons
 
-from reversible_solvers.cnf_solver import CNFSolver
-from reversible_solvers.solver import Solver
-from reversible_solvers.solver_step import RK4, Dopri5, Midpoint
-from reversible_solvers.tracking.memory import MemoryTracker
-from reversible_solvers.vector_field import AbstractVectorField
+from reversible.cnf_solver import CNFSolver
+from reversible.solver_step import RK4, Dopri5, Midpoint
+from reversible.standard_solver import Solver
+from reversible.tracking.memory import MemoryTracker
+from reversible.vector_field import AbstractVectorField
 
 
 def generate_data_moons(n):
