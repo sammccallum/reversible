@@ -8,10 +8,10 @@ import jax
 import jax.numpy as jnp
 import jax.random as jr
 
-from reversible_solvers.reversible import Reversible
-from reversible_solvers.solver import Solver
-from reversible_solvers.solver_step import Midpoint
-from reversible_solvers.vector_field import AbstractVectorField
+from reversible.reversible_solver import Reversible
+from reversible.solver_step import Midpoint
+from reversible.standard_solver import Solver
+from reversible.vector_field import AbstractVectorField
 
 jax.config.update("jax_enable_x64", True)
 
