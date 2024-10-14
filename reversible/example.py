@@ -37,4 +37,3 @@ h = 0.01
 T = 1
 y0 = jnp.asarray(1.0)[None]  # shape (1,)
 y1 = solver.solve_forward(vf, y0, h, T)
-print(y1)
