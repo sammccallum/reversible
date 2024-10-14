@@ -11,7 +11,7 @@ We present a general class of algebraically reversible solvers that allows any e
 ## Example
 Simple Neural ODE example. We wrap the Dormand-Prince 5/4 (Dopri5) solver in a Reversible class.
 
-If the `solve_forward` function appears in any `jax.grad` region, the memory-efficient backpropagation algorithm through the solve is used by default.
+If the `solve_forward` function appears in any `jax.grad` region, the memory-efficient backpropagation algorithm through the solve is automatically used.
 
 ```python
 import equinox as eqx
