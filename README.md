@@ -11,7 +11,7 @@ We present a general class of algebraically reversible solvers that allows any e
 ## Example
 Simple Neural ODE example. We wrap the Dormand-Prince 5/4 (Dopri5) solver in a Reversible class.
 
-If the `solve_forward` function appears in any `jax.grad` region, memory-efficient backpropagation through the solve is used by default.
+If the `solve_forward` function appears in any `jax.grad` region, the memory-efficient backpropagation algorithm through the solve is used by default.
 
 ```python
 import equinox as eqx
@@ -60,4 +60,7 @@ y1 = solver.solve_forward(vf, y0, h, T)
 All code to reproduce the experiments presented in the paper can be found in the `experiments` folder.
 
 ## Installation
-To install the reversible_solvers package, clone the repository and ...
+To install the reversible package, clone the repository and run:
+```bash
+pip install -e reversible
+```
