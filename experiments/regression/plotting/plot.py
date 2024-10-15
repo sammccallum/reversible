@@ -8,6 +8,7 @@ plt.rcParams.update(
         "font.size": 18,
         "text.latex.preamble": r"\usepackage{lmodern, amsmath, amssymb, amsfonts}",
         "legend.fontsize": 16,
+        "svg.fonttype": "none",
     }
 )
 
@@ -82,4 +83,4 @@ if __name__ == "__main__":
     )
 
     plt.tight_layout()
-    plt.savefig("error_and_memory.png", dpi=1000)
+    plt.savefig("error_and_memory.pdf", format="pdf")

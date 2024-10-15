@@ -480,4 +480,4 @@ if __name__ == "__main__":
     axs[3].set_xlabel(r"Re($\alpha$)")
 
     plt.tight_layout()
-    plt.savefig("stability.png", dpi=1000)
+    plt.savefig("stability.pdf", format="pdf")
