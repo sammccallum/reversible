@@ -286,23 +286,17 @@ def _solve_backward_bwd(t_and_state, grad_obj, perturbed, vjp_arg, h, T, self):
     - adj_y1: gradients w.r.t state y
     """
 
-    def forward_step(i, t_and_state):
-        t0, y0, z0 = t_and_state
-        t1 = t0 + h
-        y1 = self.l * y0 + (1 - self.l) * z0 + self.solver.step(vf, h, t0, z0)
-        z1 = z0 - self.solver.step(vf, -h, t1, y1)
-
-        return (t1, y1, z1)
-
     def grad_step(i, args):
         t_and_state0, adj_y0, adj_z0, adj_theta = args
-        t0, *state0 = t_and_state0
+        t0, y0, z0 = t_and_state0
 
-        t_and_state1 = forward_step(i, t_and_state0)
-        t1, *state1 = t_and_state1
+        step_z0, grad_step_z0_fun = eqx.filter_vjp(self.solver.step, vf, h, t0, z0)
+        t1 = t0 + h
+        y1 = self.l * y0 + (1 - self.l) * z0 + step_z0
 
-        _, grad_step_z0_fun = eqx.filter_vjp(self.solver.step, vf, h, t0, state0[1])
-        _, grad_step_y1_fun = eqx.filter_vjp(self.solver.step, vf, -h, t1, state1[0])
+        step_y1, grad_step_y1_fun = eqx.filter_vjp(self.solver.step, vf, -h, t1, y1)
+        z1 = z0 - step_y1
+        t_and_state1 = (t1, y1, z1)
 
         grad_step_z0 = grad_step_z0_fun(adj_y0)
         adj_z0 = adj_z0 + (1 - (1 / self.l)) * adj_y0 - (1 / self.l) * grad_step_z0[3]
