@@ -32,7 +32,7 @@ vf = VectorField(key)
 # Reversible Dopri5
 solver = Reversible(l=0.999, solver=Dopri5())
 
-# Solve
+# Solve over [0, T]
 h = 0.01
 T = 1
 y0 = jnp.asarray(1.0)[None]  # shape (1,)

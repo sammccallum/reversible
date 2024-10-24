@@ -1,7 +1,7 @@
 # Efficient, Accurate and Stable Gradients for Neural ODEs
 
 ## Overview
-This repository contains a JAX implementation of the Reversible Solver method introduced in [link].
+This repository contains a JAX implementation of the Reversible Solver method introduced [here](https://arxiv.org/abs/2410.11648).
 
 We present a general class of algebraically reversible solvers that allows any explicit numerical solver to be made reversible. This class of reversible solvers produce exact, memory-efficient gradients and are:
 - high-order,
@@ -48,7 +48,7 @@ vf = VectorField(key)
 # Reversible Dopri5
 solver = Reversible(l=0.999, solver=Dopri5())
 
-# Solve
+# Solve over [0, T]
 h = 0.01
 T = 1
 y0 = jnp.asarray(1.0)[None]  # shape (1,)
