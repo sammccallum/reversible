@@ -222,8 +222,7 @@ def _solve_forward_adjoint_bwd(t_and_state, grad_obj, perturbed, vjp_arg, h, T, 
     t_and_state1 = t_and_state
 
     N = int(T / h)
-    f = lambda vf, t, y: vf(t, y)
-    adj_vf = AdjointVectorField(vf, f)
+    adj_vf = AdjointVectorField(vf)
     args = t_and_state1, adj_y1, adj_theta
     args = fori_loop(0, N, grad_step, args)
     t_and_state0, adj_y0, adj_theta = args
@@ -303,8 +302,7 @@ def _solve_backward_adjoint_bwd(t_and_state, grad_obj, perturbed, vjp_arg, h, T,
     t_and_state0 = t_and_state
 
     N = int(T / h)
-    f = lambda vf, t, y: vf(t, y)
-    adj_vf = AdjointVectorField(vf, f)
+    adj_vf = AdjointVectorField(vf)
     args = t_and_state0, adj_y0, adj_theta
     args = fori_loop(0, N, grad_step, args)
     t_and_state1, adj_y1, adj_theta = args
