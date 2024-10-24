@@ -158,26 +158,17 @@ def _solve_forward_bwd(t_and_state, grad_obj, perturbed, vjp_arg, h, T, self):
     - adj_y0: gradients w.r.t state y
     """
 
-    def backward_step(i, t_and_state):
-        t1, y1, z1 = t_and_state
-        t0 = t1 - h
-        z0 = z1 + self.solver.step(vf, -h, t1, y1)
-        y0 = (
-            (1 / self.l) * y1
-            + (1 - (1 / self.l)) * z0
-            - (1 / self.l) * self.solver.step(vf, h, t0, z0)
-        )
-        return (t0, y0, z0)
-
     def grad_step(i, args):
         t_and_state1, adj_y1, adj_z1, adj_theta = args
-        t1, *state1 = t_and_state1
+        t1, y1, z1 = t_and_state1
 
-        t_and_state0 = backward_step(i, t_and_state1)
-        t0, *state0 = t_and_state0
+        step_y1, grad_step_y1_fun = eqx.filter_vjp(self.solver.step, vf, -h, t1, y1)
+        t0 = t1 - h
+        z0 = z1 + step_y1
 
-        _, grad_step_y1_fun = eqx.filter_vjp(self.solver.step, vf, -h, t1, state1[0])
-        _, grad_step_z0_fun = eqx.filter_vjp(self.solver.step, vf, h, t0, state0[1])
+        step_z0, grad_step_z0_fun = eqx.filter_vjp(self.solver.step, vf, h, t0, z0)
+        y0 = (1 / self.l) * y1 + (1 - (1 / self.l)) * z0 - (1 / self.l) * step_z0
+        t_and_state0 = (t0, y0, z0)
 
         grad_step_y1 = grad_step_y1_fun(adj_z1)
         adj_y1 = adj_y1 - grad_step_y1[3]
@@ -186,7 +177,6 @@ def _solve_forward_bwd(t_and_state, grad_obj, perturbed, vjp_arg, h, T, self):
         adj_y0 = self.l * adj_y1
         adj_z0 = adj_z1 + (1 - self.l) * adj_y1 + grad_step_z0[3]
 
-        grad_step_y1 = grad_step_y1_fun(adj_z1)
         adj_theta = eqx.apply_updates(
             adj_theta, jax.tree_util.tree_map(lambda x: -x, grad_step_y1[0])
         )
