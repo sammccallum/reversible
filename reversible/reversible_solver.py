@@ -59,10 +59,10 @@ class Reversible(eqx.Module):
     def solve_backward(
         self,
         vf: AbstractVectorField,
-        y0: ReversibleState,
+        y0: State,
         h: float,
         T: float,
-    ) -> ReversibleState:
+    ) -> State:
         """
         Solve the ODE backward in time - over [T, 0].
 
