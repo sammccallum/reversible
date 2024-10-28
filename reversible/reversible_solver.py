@@ -196,7 +196,7 @@ def _solve_forward_bwd(t_and_state, grad_obj, perturbed, vjp_arg, h, T, self):
     args = fori_loop(0, N, grad_step, args)
     t_and_state0, adj_y0, adj_z0, adj_theta = args
 
-    return adj_theta, adj_y0
+    return adj_theta, (adj_y0 + adj_z0)
 
 
 # =================================================================================
@@ -325,4 +325,4 @@ def _solve_backward_bwd(t_and_state, grad_obj, perturbed, vjp_arg, h, T, self):
     args = fori_loop(0, N, grad_step, args)
     t_and_state1, adj_y1, adj_z1, adj_theta = args
 
-    return adj_theta, adj_y1
+    return adj_theta, (adj_y1 + adj_z1)
