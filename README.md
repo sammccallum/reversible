@@ -8,6 +8,8 @@ We present a general class of algebraically reversible solvers that allows any e
 - numerically stable,
 - and naturally extend to Neural CDEs and SDEs.
 
+NOTE: we now have an improved implementation of reversible solvers in [diffrax](https://github.com/sammccallum/diffrax/tree/reversible). This has all the bells and whistles of diffrax + reversible backpropagation! See [this PR](https://github.com/patrick-kidger/diffrax/pull/528) for more information.
+
 ## Example
 Simple Neural ODE example. We wrap the Dormand-Prince 5/4 (Dopri5) solver in a Reversible class.
 
