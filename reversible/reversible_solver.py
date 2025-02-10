@@ -197,7 +197,9 @@ def _solve_forward_bwd(t_and_state, grad_obj, perturbed, vjp_arg, h, T, self):
     t_and_state1 = t_and_state
     N = int(T / h)
 
-    step_vjp_fn = lambda vf, h, t, y: eqx.filter_vjp(self.solver.step, vf, h, t, y)
+    @jax.named_scope("step_vjp_fn")
+    def step_vjp_fn(vf, h, t, y):
+        return eqx.filter_vjp(self.solver.step, vf, h, t, y)
 
     def grad_step(i, args):
         t_and_state1, adj_y1, adj_z1, adj_theta1 = args
