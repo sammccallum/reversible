@@ -1,6 +1,9 @@
+import time
+from functools import partial
 from typing import Tuple
 
 import equinox as eqx
+import equinox.internal as eqxi
 import jax
 import jax.numpy as jnp
 from jax.lax import fori_loop
@@ -55,6 +58,7 @@ class Reversible(eqx.Module):
         - state: state at t=T
         """
         return _solve_forward((vf, y0), h, T, self)
+        # return _solve_forward_checkpointed((vf, y0), h, T, self)
 
     def solve_backward(
         self,
@@ -86,6 +90,33 @@ class Reversible(eqx.Module):
 # - _solve_forward_fwd: forward pass
 # - _solve_forward_bwd: custom backpropagation
 # ================================================================================
+
+
+def _solve_forward_checkpointed(vjp_arg, h, T, self):
+    """
+    Helper forward solve function to allow custom vjp rules.
+    """
+
+    def forward_step(t_and_state):
+        t0, y0, z0 = t_and_state
+        t1 = t0 + h
+        y1 = self.l * y0 + (1 - self.l) * z0 + self.solver.step(vf, h, t0, z0)
+        z1 = z0 - self.solver.step(vf, -h, t1, y1)
+        return (t1, y1, z1)
+
+    def cond_fun(t_and_state):
+        return t_and_state[0][0] < T
+
+    vf, y0 = vjp_arg
+    N = int(T / h)
+    t0 = jnp.asarray(0.0)[None]
+    t_and_state = (t0, y0, y0)
+    t_and_state = eqxi.while_loop(
+        cond_fun, forward_step, t_and_state, max_steps=N, kind="checkpointed"
+    )
+    _, yN, zN = t_and_state
+
+    return yN
 
 
 @eqx.filter_custom_vjp
@@ -158,15 +189,25 @@ def _solve_forward_bwd(t_and_state, grad_obj, perturbed, vjp_arg, h, T, self):
     - adj_y0: gradients w.r.t state y
     """
 
+    vf, y0 = vjp_arg
+    adj_y1 = grad_obj
+    adj_z1 = jnp.zeros_like(t_and_state[2])
+    adj_theta1 = eqx.filter(vf, eqx.is_inexact_array)
+    adj_theta1 = jax.tree_util.tree_map(lambda x: jnp.zeros_like(x), adj_theta1)
+    t_and_state1 = t_and_state
+    N = int(T / h)
+
+    step_vjp_fn = lambda vf, h, t, y: eqx.filter_vjp(self.solver.step, vf, h, t, y)
+
     def grad_step(i, args):
-        t_and_state1, adj_y1, adj_z1, adj_theta = args
+        t_and_state1, adj_y1, adj_z1, adj_theta1 = args
         t1, y1, z1 = t_and_state1
 
-        step_y1, grad_step_y1_fun = eqx.filter_vjp(self.solver.step, vf, -h, t1, y1)
+        step_y1, grad_step_y1_fun = step_vjp_fn(vf, -h, t1, y1)
         t0 = t1 - h
         z0 = z1 + step_y1
 
-        step_z0, grad_step_z0_fun = eqx.filter_vjp(self.solver.step, vf, h, t0, z0)
+        step_z0, grad_step_z0_fun = step_vjp_fn(vf, h, t0, z0)
         y0 = (1 / self.l) * y1 + (1 - (1 / self.l)) * z0 - (1 / self.l) * step_z0
         t_and_state0 = (t0, y0, z0)
 
@@ -177,26 +218,16 @@ def _solve_forward_bwd(t_and_state, grad_obj, perturbed, vjp_arg, h, T, self):
         adj_y0 = self.l * adj_y1
         adj_z0 = adj_z1 + (1 - self.l) * adj_y1 + grad_step_z0[3]
 
-        adj_theta = eqx.apply_updates(
-            adj_theta, jax.tree_util.tree_map(lambda x: -x, grad_step_y1[0])
-        )
-        adj_theta = eqx.apply_updates(adj_theta, grad_step_z0[0])
+        adj_theta0 = jax.tree_map(lambda x, y: y - x, grad_step_y1[0], grad_step_z0[0])
+        adj_theta0 = eqx.apply_updates(adj_theta1, adj_theta0)
 
-        return t_and_state0, adj_y0, adj_z0, adj_theta
+        return (t_and_state0, adj_y0, adj_z0, adj_theta0)
 
-    vf, y0 = vjp_arg
-    adj_y1 = grad_obj
-    adj_z1 = jnp.zeros_like(t_and_state[2])
-    adj_theta = eqx.filter(vf, eqx.is_inexact_array)
-    adj_theta = jax.tree_util.tree_map(lambda x: jnp.zeros_like(x), adj_theta)
-    t_and_state1 = t_and_state
-
-    N = int(T / h)
-    args = t_and_state1, adj_y1, adj_z1, adj_theta
+    args = t_and_state1, adj_y1, adj_z1, adj_theta1
     args = fori_loop(0, N, grad_step, args)
-    t_and_state0, adj_y0, adj_z0, adj_theta = args
+    t_and_state0, adj_y0, adj_z0, adj_theta0 = args
 
-    return adj_theta, (adj_y0 + adj_z0)
+    return adj_theta0, (adj_y0 + adj_z0)
 
 
 # =================================================================================
